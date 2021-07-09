@@ -59,7 +59,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   seqList<-Map(f, paste0("file_", 1:length(seqFiles)), Map(function(a, x, y){seqinr::read.fasta(a, seqtype = x, as.string = y)},
                                                            a = seqFiles, x = "AA", y = TRUE))
 
-  orthologyy<-orthology[,2]
+  orthologyy<-orthology[,1]
   martList<-list()
   martRefseq<-list()
   cat("\n Preparing tables.. \n")
