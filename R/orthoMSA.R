@@ -11,6 +11,9 @@
 #' @param seqFiles A character string or character vector specifying path of fasta files consisting of protein sequences of other
 #' species. Default is `NA`, which downloads files from NCBI.
 #' @param customOrt data frame consisting of gene orthology data for given species. Default is `NA`, which takes data from AllianceGenome.
+#' @importFrom R.utils gunzip
+#' @importFrom seqinr read.fasta
+#'
 #' @return dataframe object
 #' @export
 
