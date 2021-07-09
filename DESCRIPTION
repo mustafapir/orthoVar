@@ -21,7 +21,8 @@ Imports:
     pbapply,
     biomaRt,
     msa,
-    R.utils
+    R.utils,
+    magrittr
 Remotes:
     bioc::3.13/biomaRt,
     bioc::3.13/msa
