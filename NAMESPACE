@@ -2,3 +2,5 @@
 
 export(orthoFind)
 export(orthoMSA)
+importFrom(R.utils,gunzip)
+importFrom(seqinr,read.fasta)

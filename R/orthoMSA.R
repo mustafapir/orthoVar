@@ -56,7 +56,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   f<-function(aa, bb){
     eval(substitute(a <- b, list(a = as.name(aa), b = bb)))
   }
-  seqList<-Map(f, paste0("file_", 1:length(seqFiles)), Map(function(a, x, y){read.fasta(a, seqtype = x, as.string = y)},
+  seqList<-Map(f, paste0("file_", 1:length(seqFiles)), Map(function(a, x, y){seqinr::read.fasta(a, seqtype = x, as.string = y)},
                                                            a = seqFiles, x = "AA", y = TRUE))
 
   orthologyy<-orthology[,2]
@@ -64,51 +64,51 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   martRefseq<-list()
   cat("\n Preparing tables.. \n")
   for(i in 1:length(species)){
-    orthologyx<-orthology %>% filter(Gene2SpeciesName == species[i]) %>% distinct()
+    orthologyx<-orthology %>% dplyr::filter(Gene2SpeciesName == species[i]) %>% distinct()
     orthologyy<-merge(orthologyy, orthologyx[,c(2,5)], by = "Gene1Symbol", all = TRUE, allow.cartesian = TRUE)
     colnames(orthologyy)[i+1]<-paste0("Gene_name_",i)
-    martList<-c(martList, useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]]))
-    martRefseq<-c(martRefseq, list(getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[i]]) %>%
-                                     filter(refseq_peptide != "" & !is.na(refseq_peptide)) %>%
-                                     filter(external_gene_name != "")))
+    martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]]))
+    martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[i]]) %>%
+                                     dplyr::filter(refseq_peptide != "" & !is.na(refseq_peptide)) %>%
+                                     dplyr::filter(external_gene_name != "")))
     colnames(martRefseq[[i]])[2]<-paste0("refseq_", i)
   }
-  martList<-c(martList, useMart("ENSEMBL_MART_ENSEMBL", martData[["Homo sapiens"]]))
-  martRefseq<-c(martRefseq, list(getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[length(martList)]]) %>%
-                                   filter(refseq_peptide != "" & !is.na(refseq_peptide)) %>%
-                                   filter(external_gene_name != "")))
+  martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[["Homo sapiens"]]))
+  martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[length(martList)]]) %>%
+                                   dplyr::filter(refseq_peptide != "" & !is.na(refseq_peptide)) %>%
+                                   dplyr::filter(external_gene_name != "")))
 
   orthologyy<-unique(orthologyy) %>%
-    filter_at(vars(-Gene1Symbol), any_vars(!is.na(.)))
+    dplyr::filter_at(vars(-Gene1Symbol), any_vars(!is.na(.)))
 
   df<-merge(orthologyy, martRefseq[[length(martRefseq)]], by.x = "Gene1Symbol", by.y = "external_gene_name")
   for(i in 1:length(species)){
     df<-merge(df, martRefseq[[i]], by.x = paste0("Gene_name_",i), by.y = "external_gene_name", allow.cartesian = TRUE, all = TRUE)
   }
-  df<-df %>% filter(!is.na(refseq_peptide))
+  df<-df %>% dplyr::filter(!is.na(refseq_peptide))
   df<-unique(df)
 
-  humanSeq<-read.fasta(humanSeqFile, seqtype = "AA", as.string = TRUE)
+  humanSeq<-seqinr::read.fasta(humanSeqFile, seqtype = "AA", as.string = TRUE)
   humanSeq<-data.frame(Human_seq = unlist(humanSeq))
   humanSeq$refseq_peptide<-rownames(humanSeq)
-  suppressWarnings(humanSeq<-separate(humanSeq, refseq_peptide, "refseq_peptide", sep = "\\."))
+  suppressWarnings(humanSeq<-tidyr::separate(humanSeq, refseq_peptide, "refseq_peptide", sep = "\\."))
   df<-merge(df, humanSeq, by = "refseq_peptide")
 
 
   for(i in 1:length(species)){
     seq<-data.frame(seq = unlist(seqList[[i]]))
     seq[[paste0("refseq_", i)]]<-rownames(seq)
-    suppressWarnings(seq<-separate(seq, 2, paste0("refseq_", i), sep = "\\."))
+    suppressWarnings(seq<-tidyr::separate(seq, 2, paste0("refseq_", i), sep = "\\."))
     colnames(seq)[1]<-paste0("sequence_", i)
     df<-merge(df, seq, by = paste0("refseq_", i), all = TRUE)
   }
 
-  df<-df %>% filter_at(vars(-Gene1Symbol), any_vars(!is.na(.)))
-  df<-df %>% filter(!is.na(Human_seq)) %>%
-    filter_at(vars(-!matches("sequence_[0-9]")), any_vars(!is.na(.)))
+  df<-df %>% dplyr::filter_at(vars(-Gene1Symbol), any_vars(!is.na(.)))
+  df<-df %>% dplyr::filter(!is.na(Human_seq)) %>%
+    dplyr::filter_at(vars(-!matches("sequence_[0-9]")), any_vars(!is.na(.)))
   cat("\n Aligning sequences.. \n\n")
   Sys.sleep(1)
-  pb <- timerProgressBar(min = 1, max = length(df[[1]]), style = 2)
+  pb <- pbapply::timerProgressBar(min = 1, max = length(df[[1]]), style = 2)
   seqdf<-data.frame(matrix(NA, ncol = 2*(length(species)+1)))
   for(i in 1:length(df[[1]])){
     seqlength<-length(species) + 1
@@ -116,10 +116,10 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
 
     names(seqchar)<-df[i,seqlength:1]
     k<-which(!is.na(seqchar))
-    invisible(capture.output(alignment<-msa(seqchar[k], type = "protein")))
+    invisible(capture.output(alignment<-msa::msa(seqchar[k], type = "protein")))
     seqdf[i,2*k-1]<-rownames(alignment)
     seqdf[i,2*k]<-toString(unmasked(alignment))
-    setTimerProgressBar(pb, i)
+    pbapply::setTimerProgressBar(pb, i)
   }
   speciesx<-c(species1, species)
   for(i in 1:length(speciesx)){
