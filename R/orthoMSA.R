@@ -64,7 +64,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   martRefseq<-list()
   cat("\n Preparing tables.. \n")
   for(i in 1:length(species)){
-    orthologyx<-orthology %>% dplyr::filter(Gene2SpeciesName == species[i]) %>% distinct()
+    orthologyx<-orthology %>% dplyr::filter(Gene2SpeciesName == species[i]) %>% dplyr::distinct()
     orthologyy<-merge(orthologyy, orthologyx[,c(2,5)], by = "Gene1Symbol", all = TRUE, allow.cartesian = TRUE)
     colnames(orthologyy)[i+1]<-paste0("Gene_name_",i)
     martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]]))
