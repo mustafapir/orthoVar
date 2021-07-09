@@ -44,8 +44,8 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   seqHFiles1<-list.files(path = hfpath, full.names = TRUE)
   seqFiles1<-list.files(path = fpath, full.names = TRUE)
 
-  gunzip(seqHFiles1)
-  Map(gunzip, seqFiles1)
+  R.utils::gunzip(seqHFiles1)
+  Map(R.utils::gunzip, seqFiles1)
 
   humanSeqFile<-list.files(path = "human_sequence_file", full.names = TRUE)
   seqFiles<-list.files(path = "other_sequence_files", full.names = TRUE)
