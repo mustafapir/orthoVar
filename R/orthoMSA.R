@@ -119,7 +119,8 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
     k<-which(!is.na(seqchar))
     invisible(capture.output(alignment<-msa(seqchar[k], type = "protein")))
     seqdf[i,2*k-1]<-BiocGenerics::rownames(alignment)
-    seqdf[i,2*k]<-toString(unmasked(alignment))
+    for(j in 1:length(k)){seqdf[i,2*j]<-toString(unmasked(alignment)[j])}
+    #seqdf[i,2*k]<-toString(unmasked(alignment))
     pbapply::setTimerProgressBar(pb, i)
   }
   speciesx<-c(species1, species)
@@ -127,5 +128,6 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
     colnames(seqdf)[2*i-1]<-paste0(speciesx[i],"_ID")
     colnames(seqdf)[2*i]<-paste0(speciesx[i], "_seq")
   }
+  seqdf$index<-1:length(seqdf[[1]])
   return(seqdf)
 }
