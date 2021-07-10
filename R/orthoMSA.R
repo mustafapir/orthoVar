@@ -67,12 +67,12 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   for(i in 1:length(species)){
     orthologyx<-orthology %>% dplyr::filter(Gene2SpeciesName == species[i]) %>% dplyr::distinct()
     orthologyy<-merge(orthologyy, orthologyx[,c(1,3)], by = "Gene1Symbol", all = TRUE, allow.cartesian = TRUE)
-    colnames(orthologyy)[i+1]<-paste0("Gene_name_",i)
+    base::colnames(orthologyy)[i+1]<-paste0("Gene_name_",i)
     martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]]))
     martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[i]]) %>%
                                      dplyr::filter(refseq_peptide != "" & !is.na(refseq_peptide)) %>%
                                      dplyr::filter(external_gene_name != "")))
-    colnames(martRefseq[[i]])[2]<-paste0("refseq_", i)
+    base::colnames(martRefseq[[i]])[2]<-paste0("refseq_", i)
   }
   martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[["Homo sapiens"]]))
   martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[length(martList)]]) %>%
@@ -100,7 +100,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
     seq<-data.frame(seq = unlist(seqList[[i]]))
     seq[[paste0("refseq_", i)]]<-rownames(seq)
     suppressWarnings(seq<-tidyr::separate(seq, 2, paste0("refseq_", i), sep = "\\."))
-    colnames(seq)[1]<-paste0("sequence_", i)
+    base::colnames(seq)[1]<-paste0("sequence_", i)
     df<-merge(df, seq, by = paste0("refseq_", i), all = TRUE)
   }
 
@@ -117,15 +117,15 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
 
     names(seqchar)<-df[i,seqlength:1]
     k<-which(!is.na(seqchar))
-    invisible(capture.output(alignment<-msa::msa(seqchar[k], type = "protein")))
-    seqdf[i,2*k-1]<-rownames(alignment)
+    invisible(capture.output(alignment<-msa(seqchar[k], type = "protein")))
+    seqdf[i,2*k-1]<-base::rownames(alignment)
     seqdf[i,2*k]<-toString(unmasked(alignment))
     pbapply::setTimerProgressBar(pb, i)
   }
   speciesx<-c(species1, species)
   for(i in 1:length(speciesx)){
-    colnames(seqdf)[2*i-1]<-paste0(speciesx[i],"_ID")
-    colnames(seqdf)[2*i]<-paste0(speciesx[i], "_seq")
+    base::colnames(seqdf)[2*i-1]<-paste0(speciesx[i],"_ID")
+    base::colnames(seqdf)[2*i]<-paste0(speciesx[i], "_seq")
   }
   return(seqdf)
 }
