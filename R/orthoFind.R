@@ -41,11 +41,11 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
     # tables for calculating aa conservation
     df1_conservation<-data.table::data.table(from = df1_from, to = df1_to, aapos = df1_aapos)
     df1_conservation<-dplyr::left_join(df1_conservation, aa_conservation, by = "from")
-    df1_conservation<-dplyr::mutate(df1_conservation, conservation = ifelse(stringr::str_detect(df1_conservation$to.y, fixed(df1_conservation$to.x)), 1, 0))
+    df1_conservation<-dplyr::mutate(df1_conservation, conservation = ifelse(stringr::str_detect(df1_conservation$to.y, stringr::fixed(df1_conservation$to.x)), 1, 0))
 
     df2_conservation<-data.table::data.table(from = df2_from, to = df2_to, aapos = df2_aapos)
     df2_conservation<-dplyr::left_join(df2_conservation, aa_conservation, by = "from")
-    df2_conservation<-dplyr::mutate(df2_conservation, conservation = ifelse(stringr::str_detect(df2_conservation$to.y, fixed(df2_conservation$to.x)), 1, 0))
+    df2_conservation<-dplyr::mutate(df2_conservation, conservation = ifelse(stringr::str_detect(df2_conservation$to.y, stringr::fixed(df2_conservation$to.x)), 1, 0))
 
     # get sequence of selected proteins
     df1_seq<-msa[[paste0(org1,"_seq")]][i]
