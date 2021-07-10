@@ -79,7 +79,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
                                    dplyr::filter(external_gene_name != "")))
 
   orthologyy<-unique(orthologyy) %>%
-    dplyr::filter_at(vars(-Gene1Symbol), any_vars(!is.na(.)))
+    dplyr::filter_at(dplyr::vars(-Gene1Symbol), dplyr::any_vars(!is.na(.)))
 
   df<-merge(orthologyy, martRefseq[[length(martRefseq)]], by.x = "Gene1Symbol", by.y = "external_gene_name")
   for(i in 1:length(species)){
@@ -103,9 +103,9 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
     df<-merge(df, seq, by = paste0("refseq_", i), all = TRUE)
   }
 
-  df<-df %>% dplyr::filter_at(vars(-Gene1Symbol), any_vars(!is.na(.)))
+  df<-df %>% dplyr::filter_at(dplyr::vars(-Gene1Symbol), dplyr::any_vars(!is.na(.)))
   df<-df %>% dplyr::filter(!is.na(Human_seq)) %>%
-    dplyr::filter_at(vars(-!matches("sequence_[0-9]")), any_vars(!is.na(.)))
+    dplyr::filter_at(dplyr::vars(-!dplyr::matches("sequence_[0-9]")), dplyr::any_vars(!is.na(.)))
   cat("\n Aligning sequences.. \n\n")
   Sys.sleep(1)
   pb <- pbapply::timerProgressBar(min = 1, max = length(df[[1]]), style = 2)
