@@ -62,10 +62,10 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
     df2_real_seq_ind<-data.table::as.data.table(stringi::stri_locate_all_regex(df2_real_seq, "[A-Z]")[[1]])[[1]]
 
     df1_all_seq_ind<-data.table::data.table(seq_ind = df1_seq_ind,  aapos = df1_real_seq_ind) %>%
-      filter(df1_real_seq_ind %in% df1_aapos)
+      dplyr::filter(df1_real_seq_ind %in% df1_aapos)
 
     df2_all_seq_ind<-data.table::data.table(seq_ind = df2_seq_ind, aapos = df2_real_seq_ind) %>%
-      filter(df2_real_seq_ind %in% df2_aapos)
+      dplyr::filter(df2_real_seq_ind %in% df2_aapos)
 
     df1_all_seq_ind<-df1_all_seq_ind[df1_all_seq_ind$seq_ind %in% df2_all_seq_ind$seq_ind]
     df2_all_seq_ind<-df2_all_seq_ind[df2_all_seq_ind$seq_ind %in% df1_all_seq_ind$seq_ind]
