@@ -17,6 +17,7 @@
 
 orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
   # Find index of msa having protein ids which both have variants
+  cat("\n Finding orthologous variants.. \n")
   df1_id<-msa$index[msa[[paste0(org1,"_ID")]] %in% unique(df1$Refseq_ID)]
   df2_id<-msa$index[msa[[paste0(org2,"_ID")]] %in% unique(df2$Refseq_ID)]
   common_id<-as.numeric(intersect(df1_id, df2_id))
