@@ -23,7 +23,7 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
   df1_df2_ort_list<-vector(mode = "list", length = length(common_id))
 
   j<-0
-  pb <- txtProgressBar(min = min(common_id), max = max(common_id), style = 3)
+  pb <- pbapply::timerProgressBar(min = min(common_id), max = max(common_id), style = 2)
   # Loop over only common alignments
   for (i in common_id){
     # aa positions of variants from selected protein
@@ -81,7 +81,7 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
         unique() %>%
         dplyr::select(!to.y)
 
-      all_seq_ind<-left_join(df1_all_seq_ind, df2_all_seq_ind, by = "seq_ind") %>%
+      all_seq_ind<-dplyr::left_join(df1_all_seq_ind, df2_all_seq_ind, by = "seq_ind") %>%
         dplyr::filter(from.x == from.y)
 
       # should dismiss conserved aa changes
@@ -106,7 +106,8 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
       df1_df2_ort<-df1_df2_ort[df1_df2_ort[[paste0(org1,"_aapos")]] != "",]
       df1_df2_ort_list[[j]]<-df1_df2_ort
     }
-    setTxtProgressBar(pb, i)
+    #setTxtProgressBar(pb, i)
+    pbapply::setTimerProgressBar(pb, i)
   }
   df1_df2_ort<-rbindlist(df1_df2_ort_list)
   df1_df2_ort<-unique(df1_df2_ort)
