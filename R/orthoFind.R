@@ -67,8 +67,8 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
     df2_all_seq_ind<-data.table::data.table(seq_ind = df2_seq_ind, aapos = df2_real_seq_ind) %>%
       dplyr::filter(df2_real_seq_ind %in% df2_aapos)
 
-    df1_all_seq_ind<-df1_all_seq_ind[df1_all_seq_ind$seq_ind %in% df2_all_seq_ind$seq_ind]
-    df2_all_seq_ind<-df2_all_seq_ind[df2_all_seq_ind$seq_ind %in% df1_all_seq_ind$seq_ind]
+    df1_all_seq_ind<-df1_all_seq_ind[df1_all_seq_ind$seq_ind %in% df2_all_seq_ind$seq_ind,]
+    df2_all_seq_ind<-df2_all_seq_ind[df2_all_seq_ind$seq_ind %in% df1_all_seq_ind$seq_ind,]
 
     # merge by aa positions, get only aa having same reference aa
     if (length(df1_all_seq_ind[[1]]) != 0){
@@ -92,21 +92,20 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
       # combine both organisms
       j<-j+1
       df1_df2_ort<-setNames(data.table::data.table(msa[[paste0(org1,"_ID")]][i],
-                                       all_seq_ind$aapos.x,
-                                       all_seq_ind$from.x,
-                                       all_seq_ind$to.x.x,
-                                       msa[[paste0(org2,"_ID")]][i],
-                                       all_seq_ind$aapos.y,
-                                       all_seq_ind$from.y,
-                                       all_seq_ind$to.x.y,
-                                       i),
+                                                   all_seq_ind$aapos.x,
+                                                   all_seq_ind$from.x,
+                                                   all_seq_ind$to.x.x,
+                                                   msa[[paste0(org2,"_ID")]][i],
+                                                   all_seq_ind$aapos.y,
+                                                   all_seq_ind$from.y,
+                                                   all_seq_ind$to.x.y,
+                                                   i),
                             c(paste0(org1,"_ID"), paste0(org1,"_aapos"), paste0(org1,"_from"), paste0(org1,"_to"),
                               paste0(org2,"_ID"), paste0(org2,"_aapos"), paste0(org2,"_from"), paste0(org2,"_to"), "msa_id"))
 
       df1_df2_ort<-df1_df2_ort[df1_df2_ort[[paste0(org1,"_aapos")]] != "",]
       df1_df2_ort_list[[j]]<-df1_df2_ort
     }
-    #setTxtProgressBar(pb, i)
     pbapply::setTimerProgressBar(pb, i)
   }
   df1_df2_ort<-rbindlist(df1_df2_ort_list)
