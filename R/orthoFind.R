@@ -108,7 +108,7 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
     }
     pbapply::setTimerProgressBar(pb, i)
   }
-  df1_df2_ort<-rbindlist(df1_df2_ort_list)
+  df1_df2_ort<-data.table::rbindlist(df1_df2_ort_list)
   df1_df2_ort<-unique(df1_df2_ort)
   return(df1_df2_ort)
 }
