@@ -16,6 +16,10 @@
 
 
 orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
+
+  warnOpt <- getOption("warn")
+  options(warn = -1)
+
   # Find index of msa having protein ids which both have variants
   cat("\n Finding orthologous variants.. \n")
   df1_id<-msa$index[msa[[paste0(org1,"_ID")]] %in% unique(df1$Refseq_ID)]
@@ -111,5 +115,6 @@ orthoFind<-function (df1, df2, org1, org2, msa, ort = TRUE){
   }
   df1_df2_ort<-data.table::rbindlist(df1_df2_ort_list)
   df1_df2_ort<-unique(df1_df2_ort)
+  on.exit(options(warn = warnOpt))
   return(df1_df2_ort)
 }
