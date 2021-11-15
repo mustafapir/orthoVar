@@ -31,7 +31,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   else if(annot == "ensembl"){
     annot1<-"ensembl_peptide_id"
   }
-  else {stop("'annot' must be either ncbi or ensembl")}
+  else {stop("`annot` must be either `ncbi` or `ensembl`")}
 
   if(is.na(humanSeqFile)){
     if(!dir.exists(file.path(getwd(), "human_sequence_file"))) {dir.create(file.path(getwd(), "human_sequence_file"), showWarnings = FALSE)}
@@ -78,14 +78,14 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
     orthologyy<-merge(orthologyy, orthologyx[,c(1,3)], by = "Gene1Symbol", all = TRUE, allow.cartesian = TRUE)
     colnames(orthologyy)[i+1]<-paste0("Gene_name_",i)
     martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]]))
-    martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[i]]) %>%
-                                     dplyr::filter(refseq_peptide != "" & !is.na(refseq_peptide)) %>%
+    martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(annot1)), mart = martList[[i]]) %>%
+                                     dplyr::filter(get(annot1) != "" & !is.na(get(annot1))) %>%
                                      dplyr::filter(external_gene_name != "")))
     colnames(martRefseq[[i]])[2]<-paste0("refseq_", i)
   }
   martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[["Homo sapiens"]]))
-  martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", "refseq_peptide"), mart = martList[[length(martList)]]) %>%
-                                   dplyr::filter(refseq_peptide != "" & !is.na(refseq_peptide)) %>%
+  martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(annot1)), mart = martList[[length(martList)]]) %>%
+                                   dplyr::filter(get(annot1) != "" & !is.na(get(annot1))) %>%
                                    dplyr::filter(external_gene_name != "")))
 
   orthologyy<-unique(orthologyy) %>%
@@ -95,14 +95,14 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   for(i in 1:length(species)){
     df<-merge(df, martRefseq[[i]], by.x = paste0("Gene_name_",i), by.y = "external_gene_name", allow.cartesian = TRUE, all = TRUE)
   }
-  df<-df %>% dplyr::filter(!is.na(refseq_peptide))
+  df<-df %>% dplyr::filter(!is.na(get(annot1)))
   df<-unique(df)
 
   humanSeq<-seqinr::read.fasta(humanSeqFile, seqtype = "AA", as.string = TRUE)
   humanSeq<-data.frame(Human_seq = unlist(humanSeq))
   humanSeq$refseq_peptide<-rownames(humanSeq)
-  suppressWarnings(humanSeq<-tidyr::separate(humanSeq, refseq_peptide, "refseq_peptide", sep = "\\."))
-  df<-merge(df, humanSeq, by = "refseq_peptide")
+  suppressWarnings(humanSeq<-tidyr::separate(humanSeq, get(annot1), annot1, sep = "\\."))
+  df<-merge(df, humanSeq, by = annot1)
 
 
   for(i in 1:length(species)){
