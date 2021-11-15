@@ -11,6 +11,7 @@
 #' @param seqFiles A character string or character vector specifying path of fasta files consisting of protein sequences of other
 #' species. Default is `NA`, which downloads files from NCBI.
 #' @param customOrt data frame consisting of gene orthology data for given species. Default is `NA`, which takes data from AllianceGenome.
+#' @param annot source of annotation. Either "ncbi" or "ensembl" can be used. Default is ncbi.
 #' @importFrom R.utils gunzip
 #' @importFrom seqinr read.fasta
 #'
@@ -18,11 +19,19 @@
 #' @export
 
 
-orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFiles = NA, customOrt = NA){
+orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFiles = NA, customOrt = NA, annot = "ncbi"){
 
   if(!is.na(customOrt)){
     orthology<-customOrt
   }
+
+  if(annot == "ncbi"){
+    annot1<-"refseq_peptide"
+  }
+  else if(annot == "ensembl"){
+    annot1<-"ensembl_peptide_id"
+  }
+  else {stop("'annot' must be either ncbi or ensembl")}
 
   if(is.na(humanSeqFile)){
     if(!dir.exists(file.path(getwd(), "human_sequence_file"))) {dir.create(file.path(getwd(), "human_sequence_file"), showWarnings = FALSE)}
