@@ -56,8 +56,8 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   seqHFiles1<-list.files(path = hfpath, full.names = TRUE)
   seqFiles1<-list.files(path = fpath, full.names = TRUE)
 
-  R.utils::gunzip(seqHFiles1)
-  Map(R.utils::gunzip, seqFiles1)
+  if(tools::file_ext(seqHFiles1) == "gz") {R.utils::gunzip(seqHFiles1)}
+  if(tools::file_ext(seqFiles1) == "gz") {Map(R.utils::gunzip, seqFiles1)}
 
   humanSeqFile<-list.files(path = "human_sequence_file", full.names = TRUE)
   seqFiles<-list.files(path = "other_sequence_files", full.names = TRUE)
@@ -100,7 +100,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
 
   humanSeq<-seqinr::read.fasta(humanSeqFile, seqtype = "AA", as.string = TRUE)
   humanSeq<-data.frame(Human_seq = unlist(humanSeq))
-  humanSeq$refseq_peptide<-rownames(humanSeq)
+  humanSeq[[annot1]]<-rownames(humanSeq)
   suppressWarnings(humanSeq<-tidyr::separate(humanSeq, get(annot1), annot1, sep = "\\."))
   df<-merge(df, humanSeq, by = annot1)
 
