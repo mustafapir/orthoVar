@@ -25,7 +25,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   }
 
   if(is.na(humanSeqFile)){
-    dir.create(file.path(getwd(), "human_sequence_file"), showWarnings = FALSE)
+    if(!dir.exists(file.path(getwd(), "human_sequence_file"))) {dir.create(file.path(getwd(), "human_sequence_file"), showWarnings = FALSE)}
     cat("\n Downloading Homo sapiens protein sequence fasta file.. \n")
     download.file(downloadLinks[["Homo sapiens"]], destfile = paste0(file.path(getwd(), "human_sequence_file"), "/Homo_sapiens_protein.faa.gz"),
                   method = "auto", quiet = TRUE)
@@ -33,7 +33,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
 
   if(is.na(seqFiles)){
     cat("\n Downloading other protein sequence fasta files.. \n")
-    dir.create(file.path(getwd(), "other_sequence_files"), showWarnings = FALSE)
+    if(!dir.exists(file.path(getwd(), "other_sequence_files"))) {dir.create(file.path(getwd(), "other_sequence_files"), showWarnings = FALSE)}
     for(i in 1:length(species)){
       download.file(downloadLinks[[species[i]]], destfile = paste0(file.path(getwd(), "other_sequence_files"), "/", i, "_", species[i], "_protein.faa.gz"),
                     method = "auto", quiet = TRUE)
