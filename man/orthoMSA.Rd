@@ -9,7 +9,8 @@ orthoMSA(
   species,
   humanSeqFile = NA,
   seqFiles = NA,
-  customOrt = NA
+  customOrt = NA,
+  annot = "ncbi"
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ orthoMSA(
 species. Default is \code{NA}, which downloads files from NCBI.}
 
 \item{customOrt}{data frame consisting of gene orthology data for given species. Default is \code{NA}, which takes data from AllianceGenome.}
+
+\item{annot}{source of annotation. Either "ncbi" or "ensembl" can be used. Default is ncbi.}
 }
 \value{
 dataframe object
