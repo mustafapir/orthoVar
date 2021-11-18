@@ -26,9 +26,13 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   }
 
   if(annot == "ncbi"){
+    for(i in 1:7){
+      martData[[i]][2]<-"refseq_peptide"
+    }
     annot1<-"refseq_peptide"
   }
   else if(annot == "ensembl"){
+    martData<-martData
     annot1<-"ensembl_peptide_id"
   }
   else {stop("`annot` must be either `ncbi` or `ensembl`")}
@@ -77,15 +81,15 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
     orthologyx<-orthology %>% dplyr::filter(Gene2SpeciesName == species[i]) %>% dplyr::distinct()
     orthologyy<-merge(orthologyy, orthologyx[,c(1,3)], by = "Gene1Symbol", all = TRUE, allow.cartesian = TRUE)
     colnames(orthologyy)[i+1]<-paste0("Gene_name_",i)
-    martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]]))
-    martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(annot1)), mart = martList[[i]]) %>%
-                                     dplyr::filter(get(annot1) != "" & !is.na(get(annot1))) %>%
+    martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]][1]))
+    martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(martData[[species[i]]][2])), mart = martList[[i]]) %>%
+                                     dplyr::filter(get(martData[[species[i]]][2]) != "" & !is.na(get(martData[[species[i]]][2]))) %>%
                                      dplyr::filter(external_gene_name != "")))
     colnames(martRefseq[[i]])[2]<-paste0("refseq_", i)
   }
-  martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[["Homo sapiens"]]))
-  martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(annot1)), mart = martList[[length(martList)]]) %>%
-                                   dplyr::filter(get(annot1) != "" & !is.na(get(annot1))) %>%
+  martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[["Homo sapiens"]][1]))
+  martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(martData[["Homo sapiens"]][2])), mart = martList[[length(martList)]]) %>%
+                                   dplyr::filter(get(martData[["Homo sapiens"]][2]) != "" & !is.na(get(martData[["Homo sapiens"]][2]))) %>%
                                    dplyr::filter(external_gene_name != "")))
 
   orthologyy<-unique(orthologyy) %>%
@@ -108,7 +112,9 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   for(i in 1:length(species)){
     seq<-data.frame(seq = unlist(seqList[[i]]))
     seq[[paste0("refseq_", i)]]<-rownames(seq)
-    suppressWarnings(seq<-tidyr::separate(seq, 2, paste0("refseq_", i), sep = "\\."))
+    if (species[i] != "Caenorhabditis elegans"){
+      suppressWarnings(seq<-tidyr::separate(seq, 2, paste0("refseq_", i), sep = "\\."))
+    }
     colnames(seq)[1]<-paste0("sequence_", i)
     df<-merge(df, seq, by = paste0("refseq_", i), all = TRUE)
   }
