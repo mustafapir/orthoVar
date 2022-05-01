@@ -6,9 +6,6 @@
 \usage{
 listSpecies(...)
 }
-\value{
-character string
-}
 \description{
 Helper functions
 }

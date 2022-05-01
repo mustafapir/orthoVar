@@ -7,10 +7,11 @@
 orthoMSA(
   species1 = "Homo sapiens",
   species,
-  humanSeqFile = NA,
+  seqFile1 = NA,
   seqFiles = NA,
-  customOrt = NA,
-  annot = "ncbi"
+  customOrt = NaN,
+  annot = "ncbi",
+  ...
 )
 }
 \arguments{
@@ -18,12 +19,14 @@ orthoMSA(
 
 \item{species}{A character string or character vector specifying other species names used in msa}
 
-\item{humanSeqFile}{Path of fasta file consisting of human protein sequences. Default is \code{NA}, which downloads file from NCBI.}
+\item{seqFile1}{Path of fasta file consisting of protein sequence of first organism. Default is \code{NA}, which downloads the file from NCBI.}
 
-\item{seqFiles}{A character string or character vector specifying path of fasta files consisting of protein sequences of other
-species. Default is \code{NA}, which downloads files from NCBI.}
+\item{seqFiles}{A character string or character vector specifying path of fasta files consisting of protein sequences of
+species indicated in \code{species} parameter. Default is \code{NA}, which downloads files from NCBI.}
 
-\item{customOrt}{data frame consisting of gene orthology data for given species. Default is \code{NA}, which takes data from AllianceGenome.}
+\item{customOrt}{data frame consisting of gene orthology data for given species. Default is \code{NA}, which takes data from AllianceGenome.
+If your species is not among the ones indicated in output of \code{listSpecies()} function, then use either custom orthology list or set this
+to \code{customOrt = "ensembl"} to get orthology data from biomart.}
 
 \item{annot}{source of annotation. Either "ncbi" or "ensembl" can be used. Default is ncbi.}
 }

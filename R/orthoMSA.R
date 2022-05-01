@@ -7,10 +7,12 @@
 #'
 #' @param species1 Name of the main species name which will be used in msa. Default is `Homo sapiens`.
 #' @param species A character string or character vector specifying other species names used in msa
-#' @param humanSeqFile Path of fasta file consisting of human protein sequences. Default is `NA`, which downloads file from NCBI.
-#' @param seqFiles A character string or character vector specifying path of fasta files consisting of protein sequences of other
-#' species. Default is `NA`, which downloads files from NCBI.
+#' @param seqFile1 Path of fasta file consisting of protein sequence of first organism. Default is `NA`, which downloads the file from NCBI.
+#' @param seqFiles A character string or character vector specifying path of fasta files consisting of protein sequences of
+#' species indicated in `species` parameter. Default is `NA`, which downloads files from NCBI.
 #' @param customOrt data frame consisting of gene orthology data for given species. Default is `NA`, which takes data from AllianceGenome.
+#' If your species is not among the ones indicated in output of `listSpecies()` function, then use either custom orthology list or set this
+#' to `customOrt = "ensembl"` to get orthology data from biomart.
 #' @param annot source of annotation. Either "ncbi" or "ensembl" can be used. Default is ncbi.
 #' @importFrom R.utils gunzip
 #' @importFrom seqinr read.fasta
@@ -19,122 +21,164 @@
 #' @export
 
 
-orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFiles = NA, customOrt = NA, annot = "ncbi"){
+orthoMSA<-function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles = NA, customOrt = NaN, annot = "ncbi", ...) {
 
-  if(!is.na(customOrt)){
+
+  # Set orthology data ----
+  Sys.sleep(1)
+  cat(paste0("\r","Downloading protein fasta files"))
+  if(length(customOrt)>0 & customOrt != "ensembl"){
     orthology<-customOrt
+    orthology<-ortho_convert(species1, species)
+  } else if(customOrt == "ensembl"){
+    orthology<-ort(species1, species)
+  } else {
+    orthology<-ortho_convert(species1, species)
   }
 
-  if(annot == "ncbi"){
-    for(i in 1:7){
-      martData[[i]][2]<-"refseq_peptide"
-    }
-    annot1<-"refseq_peptide"
-  }
-  else if(annot == "ensembl"){
-    martData<-martData
-    annot1<-"ensembl_peptide_id"
-  }
-  else {stop("`annot` must be either `ncbi` or `ensembl`")}
 
-  if(is.na(humanSeqFile)){
-    if(!dir.exists(file.path(getwd(), "human_sequence_file"))) {dir.create(file.path(getwd(), "human_sequence_file"), showWarnings = FALSE)}
-    cat("\n Downloading Homo sapiens protein sequence fasta file.. \n")
-    download.file(downloadLinks[["Homo sapiens"]], destfile = paste0(file.path(getwd(), "human_sequence_file"), "/Homo_sapiens_protein.faa.gz"),
-                  method = "auto", quiet = TRUE)
+  # Check whether orthology data is a list ----
+  checkort<-inherits(orthology, "list")
+
+
+  # Set annotations ----
+  martData<-ifelse(annot == "ncbi", "refseq_peptide", "ensembl_peptide_id")
+
+  cat(paste0("\r","Downloading protein fasta files.  "))
+
+  # Get urls ----
+  urls<-getlinks(species1, species, annot)
+
+  # Download fasta files ----
+  urlnumb<-ifelse(!is.na(seqFile1), 2, 1)                        # in the case where user enter file manually,
+  urlnumb2<-ifelse(!is.na(seqFiles), 1, (length(species)+1))     # arrange the naming of files accordingly.
+  if((urlnumb2-urlnumb>=0)){
+
+    Sys.sleep(1)
+    cat(paste0("\r","Downloading protein fasta files..  "))
+
+    dest<-paste0(file.path(getwd(), "sequence_files"), "/seq_", seq(urlnumb, urlnumb2, 1), ".faa.gz")
+    urls_2<-urls[urlnumb:urlnumb2]
+
+    if(!dir.exists(file.path(getwd(), "sequence_files"))) {dir.create(file.path(getwd(), "sequence_files"), showWarnings = FALSE)}
+    Map(function(u, d) download.file(u, d, method = "auto", quiet = TRUE), urls_2, dest)
+
+    Sys.sleep(1)
+    cat(paste0("\r","Downloading protein fasta files... "))
   }
 
-  if(is.na(seqFiles)){
-    cat("\n Downloading other protein sequence fasta files.. \n")
-    if(!dir.exists(file.path(getwd(), "other_sequence_files"))) {dir.create(file.path(getwd(), "other_sequence_files"), showWarnings = FALSE)}
-    for(i in 1:length(species)){
-      download.file(downloadLinks[[species[i]]], destfile = paste0(file.path(getwd(), "other_sequence_files"), "/", i, "_", species[i], "_protein.faa.gz"),
-                    method = "auto", quiet = TRUE)
-    }
+  # Read fasta files ----
+  Sys.sleep(1)
+  flush.console()
+  Sys.sleep(1)
+  cat(paste0("\r","Reading fasta files               "))
+
+  if(!is.na(seqFiles)){
+    file.copy(from = seqFiles,
+              to   = paste0("sequence_files/", "seq_", seq(2, length(species)+1, 1), ".faa.gz"))  # copy manually entered files
   }
 
-  cat("\n Reading fasta files.. \n")
+  if(!is.na(seqFile1)){
+    file.copy(from = seqFile1,
+              to   = paste0("sequence_files/seq_1.faa.gz"))
+  }
 
-  hfpath<-file.path(getwd(), "human_sequence_file")
-  fpath<-file.path(getwd(), "other_sequence_files")
-  seqHFiles1<-list.files(path = hfpath, full.names = TRUE)
+  Sys.sleep(1)
+  cat(paste0("\r","Reading fasta files.              "))
+
+  fpath<-file.path(getwd(), "sequence_files")
   seqFiles1<-list.files(path = fpath, full.names = TRUE)
+  if(tools::file_ext(seqFiles1) == "gz") {Map(R.utils::gunzip, seqFiles1)}             # unzip all files in the directory
+  sfs<-list.files(path = "sequence_files", full.names = TRUE)
 
-  if(tools::file_ext(seqHFiles1) == "gz") {R.utils::gunzip(seqHFiles1)}
-  if(tools::file_ext(seqFiles1) == "gz") {Map(R.utils::gunzip, seqFiles1)}
-
-  humanSeqFile<-list.files(path = "human_sequence_file", full.names = TRUE)
-  seqFiles<-list.files(path = "other_sequence_files", full.names = TRUE)
+  Sys.sleep(1)
+  cat(paste0("\r","Reading fasta files..             "))
 
   f<-function(aa, bb){
     eval(substitute(a <- b, list(a = as.name(aa), b = bb)))
   }
-  seqList<-Map(f, paste0("file_", 1:length(seqFiles)), Map(function(a, x, y){seqinr::read.fasta(a, seqtype = x, as.string = y)},
-                                                           a = seqFiles, x = "AA", y = TRUE))
+  seqList<-Map(f, paste0("file_", 1:length(sfs)), Map(function(a, x, y){seqinr::read.fasta(a, seqtype = x, as.string = y)},
+                                                      a = sfs, x = "AA", y = TRUE))
 
-  orthologyy<-orthology %>%
-    dplyr::select(Gene1Symbol)
-  martList<-list()
-  martRefseq<-list()
-  cat("\n Preparing tables.. \n")
-  for(i in 1:length(species)){
-    orthologyx<-orthology %>% dplyr::filter(Gene2SpeciesName == species[i]) %>% dplyr::distinct()
-    orthologyy<-merge(orthologyy, orthologyx[,c(1,3)], by = "Gene1Symbol", all = TRUE, allow.cartesian = TRUE)
-    colnames(orthologyy)[i+1]<-paste0("Gene_name_",i)
-    martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[[species[i]]][1]))
-    martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(martData[[species[i]]][2])), mart = martList[[i]]) %>%
-                                     dplyr::filter(get(martData[[species[i]]][2]) != "" & !is.na(get(martData[[species[i]]][2]))) %>%
-                                     dplyr::filter(external_gene_name != "")))
-    colnames(martRefseq[[i]])[2]<-paste0("refseq_", i)
-  }
-  martList<-c(martList, biomaRt::useMart("ENSEMBL_MART_ENSEMBL", martData[["Homo sapiens"]][1]))
-  martRefseq<-c(martRefseq, list(biomaRt::getBM(c("external_gene_name", paste(martData[["Homo sapiens"]][2])), mart = martList[[length(martList)]]) %>%
-                                   dplyr::filter(get(martData[["Homo sapiens"]][2]) != "" & !is.na(get(martData[["Homo sapiens"]][2]))) %>%
-                                   dplyr::filter(external_gene_name != "")))
+  Sys.sleep(1)
+  cat(paste0("\r","Reading fasta files...            "))
 
-  orthologyy<-unique(orthologyy) %>%
+  # Map annotations ----
+  ortx<-data.table::rbindlist(orthology, use.names = FALSE)
+  orty<-ortx %>% dplyr::filter(Gene1SpeciesName == species1) %>%
+    dplyr::select(Gene1Symbol) %>%
+    dplyr::distinct()
+
+  Sys.sleep(1)
+  flush.console()
+  Sys.sleep(1)
+  cat(paste0("\r","Preparing tables                  "))
+
+  allsp<-c(species1, species)
+  nms2<-paste0("Gene_name_",allsp)
+  sseq<-seq(1, 3*(length(species)-1)+1, 3)
+  final_ort<-orthology %>% purrr::reduce(dplyr::full_join, by = "Gene1Symbol") %>%      # merge orthology data of all species
+    dplyr::select(1,all_of(sseq+1)) %>%
+    dplyr::distinct() %>%
     dplyr::filter_at(dplyr::vars(-Gene1Symbol), dplyr::any_vars(!is.na(.)))
 
-  df<-merge(orthologyy, martRefseq[[length(martRefseq)]], by.x = "Gene1Symbol", by.y = "external_gene_name")
-  for(i in 1:length(species)){
-    df<-merge(df, martRefseq[[i]], by.x = paste0("Gene_name_",i), by.y = "external_gene_name", allow.cartesian = TRUE, all = TRUE)
-  }
-  df<-df %>% dplyr::filter(!is.na(get(annot1)))
-  df<-unique(df)
+  colnames(final_ort)<-c(paste0("Gene_name_", allsp))
 
-  humanSeq<-seqinr::read.fasta(humanSeqFile, seqtype = "AA", as.string = TRUE)
-  humanSeq<-data.frame(Human_seq = unlist(humanSeq))
-  humanSeq[[annot1]]<-rownames(humanSeq)
-  suppressWarnings(humanSeq<-tidyr::separate(humanSeq, get(annot1), annot1, sep = "\\."))
-  df<-merge(df, humanSeq, by = annot1)
-
-
-  for(i in 1:length(species)){
-    seq<-data.frame(seq = unlist(seqList[[i]]))
-    seq[[paste0("refseq_", i)]]<-rownames(seq)
-    if (species[i] != "Caenorhabditis elegans"){
-      suppressWarnings(seq<-tidyr::separate(seq, 2, paste0("refseq_", i), sep = "\\."))
-    }
-    colnames(seq)[1]<-paste0("sequence_", i)
-    df<-merge(df, seq, by = paste0("refseq_", i), all = TRUE)
-  }
-
-  df<-df %>% dplyr::filter_at(dplyr::vars(-Gene1Symbol), dplyr::any_vars(!is.na(.)))
-  df<-df %>% dplyr::filter(!is.na(Human_seq)) %>%
-    dplyr::filter_at(dplyr::vars(-!dplyr::matches("sequence_[0-9]")), dplyr::any_vars(!is.na(.)))
-  cat("\n Aligning sequences.. \n\n")
   Sys.sleep(1)
-  pb <- pbapply::timerProgressBar(min = 1, max = length(df[[1]]), style = 2)
-  seqdf<-data.frame(matrix(NA, ncol = 2*(length(species)+1)))
-  for(i in 1:length(df[[1]])){
-    seqlength<-length(species) + 1
-    seqchar<-as.character(df[i,(2*seqlength+1):length(df)])
+  cat(paste0("\r","Preparing tables.                 "))
 
-    names(seqchar)<-df[i,seqlength:1]
+  martref<-prot(species1, species, martData)
+
+  Sys.sleep(1)
+  cat(paste0("\r","Preparing tables..                "))
+
+  for(i in seq_along(allsp)){                                                        # merge orthology and annotations
+    final_ort<-merge(final_ort, martref[[i]],
+                     by = colnames(final_ort)[i],
+                     all = TRUE, allow.cartesian = TRUE)
+  }
+
+
+  for(i in seq_along(allsp)){
+    seq_names<-paste0("Refseq_", allsp[i])
+
+    Seq1<-data.frame(unlist(seqList[[i]]))
+    names(Seq1)<-paste0("seq_", allsp[i])
+    Seq1[[seq_names]]<-rownames(Seq1)
+    suppressWarnings(Seq1<-tidyr::separate(Seq1, get(seq_names), seq_names, sep = "\\."))
+    final_ort<-merge(final_ort, Seq1, by = seq_names, all = TRUE)
+  }
+
+  rowAny<-function(x) rowSums(x) > 1
+  final_ort<-final_ort %>%                                      # remove rows having only one non-NA value
+    dplyr::filter(rowAny(dplyr::across(
+      .cols = dplyr::starts_with("seq"),
+      .fns = ~ !is.na(.x)
+    )
+    )
+    )
+
+  cat(paste0("\r","Preparing tables...               "))
+
+
+  # Sequence alignment ----
+  Sys.sleep(2)
+  flush.console()
+  Sys.sleep(1)
+  cat(paste0("\r","Aligning sequences                "))
+  Sys.sleep(2)
+
+  pb <- pbapply::timerProgressBar(min = 1, max = length(final_ort[[1]]), style = 2)
+  seqdf<-data.frame(matrix(NA, ncol = 2*(length(species)+1)))
+  for(i in 1:length(final_ort[[1]])){
+    seqlength<-length(species) + 1
+    seqchar<-as.character(final_ort[i,(2*seqlength+1):length(final_ort)])
+
+    names(seqchar)<-final_ort[i,seqlength:1]
     k<-which(!is.na(seqchar))
     invisible(capture.output(alignment<-msa(seqchar[k], type = "protein")))
     seqdf[i,2*k-1]<-BiocGenerics::rownames(alignment)
-    for(j in 1:length(k)){seqdf[i,2*j]<-toString(unmasked(alignment)[j])}
+    for(j in k){seqdf[i,2*j]<-toString(unmasked(alignment)[which(k == j)])}
     #seqdf[i,2*k]<-toString(unmasked(alignment))
     pbapply::setTimerProgressBar(pb, i)
   }
@@ -145,4 +189,5 @@ orthoMSA<-function(species1 = "Homo sapiens", species, humanSeqFile = NA, seqFil
   }
   seqdf$index<-1:length(seqdf[[1]])
   return(seqdf)
+
 }
