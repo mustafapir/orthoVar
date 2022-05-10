@@ -51,6 +51,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles =
   urls<-getlinks(species1, species, annot)
 
   # Download fasta files ----
+  if(!dir.exists(file.path(getwd(), "sequence_files"))) {dir.create(file.path(getwd(), "sequence_files"), showWarnings = FALSE)}
   urlnumb<-ifelse(!is.na(seqFile1), 2, 1)                        # in the case where user enter file manually,
   urlnumb2<-ifelse(!is.na(seqFiles), 1, (length(species)+1))     # arrange the naming of files accordingly.
   if((urlnumb2-urlnumb>=0)){
@@ -61,7 +62,6 @@ orthoMSA<-function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles =
     dest<-paste0(file.path(getwd(), "sequence_files"), "/seq_", seq(urlnumb, urlnumb2, 1), ".faa.gz")
     urls_2<-urls[urlnumb:urlnumb2]
 
-    if(!dir.exists(file.path(getwd(), "sequence_files"))) {dir.create(file.path(getwd(), "sequence_files"), showWarnings = FALSE)}
     Map(function(u, d) download.file(u, d, method = "auto", quiet = TRUE), urls_2, dest)
 
     Sys.sleep(1)
@@ -89,7 +89,7 @@ orthoMSA<-function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles =
 
   fpath<-file.path(getwd(), "sequence_files")
   seqFiles1<-list.files(path = fpath, full.names = TRUE)
-  if(tools::file_ext(seqFiles1) == "gz") {Map(R.utils::gunzip, seqFiles1)}             # unzip all files in the directory
+  purrr::map_if(seqFiles1, function(x) tools::file_ext(x) == "gz", function(x) Map(R.utils::gunzip, x))    # unzip all files in the directory
   sfs<-list.files(path = "sequence_files", full.names = TRUE)
 
   Sys.sleep(1)
