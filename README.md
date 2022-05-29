@@ -25,12 +25,14 @@ an input.
     specified in `species` argument. Default is `NA`, which downloads
     files from NCBI.
 
+-   `annot`: Annotation source. Either `ncbi` or `ensembl`.
+    
 -   `customOrt`: A data frame consisting of gene orthology data for
     given species. Default is `NA`, which takes data from
     AllianceGenome: [Alliance of Genome Resources
-    (alliancegenome.org)](https://www.alliancegenome.org/). Custom data
-    should be in the same format as the data provided below, including
-    column names:
+    (alliancegenome.org)](https://www.alliancegenome.org/). This can either 
+    be `ensembl` or custom data, which should be in the same format 
+    as the data provided below, including column names:
 
 | Gene1Symbol | Gene1SpeciesName | Gene2Symbol | Gene2SpeciesName         |
 |:------------|:-----------------|:------------|:-------------------------|
@@ -43,6 +45,13 @@ an input.
 The output is a `data frame`, with first two columns represent protein
 id and sequence for `Homo sapiens`. Other columns follow the same
 patterns, where every two columns belong to a species.
+
+Example usage:
+`hum_mouse <- orthoMSA(species1 = "Homo sapiens",
+                       species = "Mus musculus",
+                       customOrt = "ensembl",
+                       annot = "ensembl")`
+
 
 ## `orthoFind` function to find orthologous variants
 
