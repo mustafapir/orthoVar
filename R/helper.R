@@ -92,10 +92,10 @@ getlinks<-function(species1, species, annot){
   } else {
     all_links<-c()
     for (i in 1:length(allsp)){
-      page<-rvest::read_html(paste0("http://ftp.ensembl.org/pub/current_fasta/", spnames2[i], "/pep/"))
+      page<-rvest::read_html(paste0("https://ftp.ensembl.org/pub/current_fasta/", spnames2[i], "/pep/"))
       link<-page %>% rvest::html_nodes(xpath = '/html/body/pre/a') %>% rvest::html_attr('href')
       link<-link[grepl("all",link)]
-      link<-paste0("http://ftp.ensembl.org/pub/current_fasta/", spnames2[i], "/pep/", link)
+      link<-paste0("https://ftp.ensembl.org/pub/current_fasta/", spnames2[i], "/pep/", link)
       all_links<-c(all_links, link)
     }
   }
