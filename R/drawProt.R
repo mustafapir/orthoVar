@@ -23,9 +23,9 @@ drawProt<-function(table, protein_id, organisms){
     colors<-c("#FF1F5B","#009ADE")
     table<-table[table[[paste0(organisms[i], "_ID")]] == protein_id[i],]
     SNP <- table[[paste0(organisms[i], "_aapos")]]
-    gene1 <- GRanges("chr1", IRanges(SNP, width=1, names=paste0(ort[[paste0(organisms[i], "_from")]],
-                                                                ort[[paste0(organisms[i], "_aapos")]],
-                                                                ort[[paste0(organisms[i], "_to")]])))
+    gene1 <- GRanges("chr1", IRanges(SNP, width=1, names=paste0(table[[paste0(organisms[i], "_from")]],
+                                                                table[[paste0(organisms[i], "_aapos")]],
+                                                                table[[paste0(organisms[i], "_to")]])))
     gene1$border <- sample(c("gray30"), length(SNP), replace=TRUE)
 
     gene1.rot <- gene1
