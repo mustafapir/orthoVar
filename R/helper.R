@@ -141,5 +141,28 @@ ortho_convert<-function(species1, species, ...){
 
 }
 
+getinfo<-function(protid, organism){
+  sh<-shortnames(organism, "")
+  mart <- useEnsembl("ensembl", paste0(sh[1], "_gene_ensembl"))
+  bm<-getBM(c("uniprotswissprot","refseq_peptide","pfam","pfam_start","pfam_end"), "refseq_peptide", protid, mart)
+  url <- paste0("http://pfam.xfam.org/protein/", unique(bm$uniprotswissprot))
+  len <- url %>%
+    read_html() %>%
+    html_nodes(xpath='//*[@id="proteinSummaryBlock"]/div[2]/table[1]/tbody/tr[3]/td[2]')
+  len<-as.numeric(gsub("[^0-9]", "", len, perl = TRUE))
+
+  url <- paste0("http://pfam.xfam.org/family/", unique(bm$pfam))
+  dom<-c()
+  for(i in 1:length(url)){
+    domx <- url[i] %>%
+      read_html() %>%
+      html_nodes(xpath='//*[@id="tabTitle"]/h1/em') %>%
+      as.character() %>%
+      stringr::str_extract("(?<=>)(.*?)(?=<)")
+    dom<-c(dom, domx)
+  }
+
+  list(tbl = bm, len = len, dom = dom)
+}
 
 

@@ -1,6 +1,6 @@
 Package: orthoVar
 Title: A package for finding orthologous variants between species.
-Version: 0.3.1
+Version: 0.4.0
 Author: Mustafa Samet Pir
 Maintainer: Mustafa Samet Pir <mustafapir29@gmail.com>
 Description: This package provides functions for generating genome-wide multiple sequence alignments (msa) and finding orthologous variants between species
@@ -14,6 +14,7 @@ Depends:
     msa
 Imports: 
     data.table,
+    trackViewer,
     stringi,
     dplyr,
     tidyr,
@@ -27,4 +28,5 @@ Imports:
     rvest
 Remotes:
     bioc::3.13/biomaRt,
-    bioc::3.13/msa
+    bioc::3.13/msa,
+    bioc::3.13/trackViewer
