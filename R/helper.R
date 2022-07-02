@@ -14,12 +14,15 @@ listSpecies<-function(...){
 #' @param species get species from parent function
 #' @noRd
 
+
+shortnames<-function(species1, species){
+  allsp<-c(species1, species)
+  gsub('(\\b\\pL).*? ', '\\L\\1', allsp, perl = TRUE)
+}
+
 ort<-function(species1, species){
 
-  allsp<-c(species1, species)
-  allsp2<-tolower(substr(allsp, 1, 1))
-  allsp3<-stringr::str_split_fixed(allsp, " ", 2)
-  spnames<-paste0(allsp2, allsp3[,2])
+  spnames<-shortnames(species1, species)
 
   ensembl = biomaRt::useMart("ensembl", dataset=paste0(spnames[1], "_gene_ensembl"))
   lst<-lapply(spnames[2:length(spnames)], function(x) biomaRt::getBM(attributes = c("ensembl_gene_id",
@@ -44,10 +47,8 @@ ort<-function(species1, species){
 
 prot<-function(species1, species, martData){
 
+  spnames<-shortnames(species1, species)
   allsp<-c(species1, species)
-  allsp2<-tolower(substr(allsp, 1, 1))
-  allsp3<-stringr::str_split_fixed(allsp, " ", 2)
-  spnames<-paste0(allsp2, allsp3[,2])
 
   martList<-lapply(spnames, function(x) {
 
@@ -76,7 +77,7 @@ getlinks<-function(species1, species, annot){
   allsp2<-tolower(substr(allsp, 1, 1))
   allsp21<-tolower(substr(allsp, 1, 100))
   allsp3<-stringr::str_split_fixed(allsp21, " ", 2)
-  spnames<-paste0(allsp3[,1], "+", allsp3[,2])
+  spnames<-gsub(" ", "+", allsp21)
   spnames2<-gsub(" ", "_", allsp21)
 
   if(annot == "ncbi"){
@@ -111,10 +112,7 @@ ortho_convert<-function(species1, species, ...){
     dplyr::filter(Gene1SpeciesName == species1, Gene2SpeciesName %in% species)
 
   # prepare organism names for use in biomart
-  allsp<-c(species1, species)
-  allsp2<-tolower(substr(allsp, 1, 1))
-  allsp3<-stringr::str_split_fixed(allsp, " ", 2)
-  spnames<-paste0(allsp2, allsp3[,2])
+  spnames<-shortnames(species1, species)
 
   # get annotations from ensembl
   ensembl<-lapply(spnames, function(x) biomaRt::useMart("ensembl", dataset=paste0(x, "_gene_ensembl")))
