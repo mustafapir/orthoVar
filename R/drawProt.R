@@ -17,11 +17,13 @@ drawProt<-function(table, protein_id, organisms){
   glist<-list()
   flist<-list()
 
+  table1<-table[table[[paste0(organisms[1], "_ID")]] == protein_id[1] & table[[paste0(organisms[2], "_ID")]] == protein_id[2],]
+
   for(i in 1:length(protein_id)){
 
     info<-getinfo(protid = protein_id[i], organism = organisms[i])
     colors<-c("#FF1F5B","#009ADE")
-    table1<-table[table[[paste0(organisms[i], "_ID")]] == protein_id[i],]
+
     SNP <- table1[[paste0(organisms[i], "_aapos")]]
     gene1 <- GenomicRanges::GRanges("chr1", IRanges(SNP, width=1, names=paste0(table1[[paste0(organisms[i], "_from")]],
                                                                 table1[[paste0(organisms[i], "_aapos")]],
