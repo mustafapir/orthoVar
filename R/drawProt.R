@@ -25,7 +25,7 @@ drawProt<-function(table, protein_id, organisms){
     colors<-c("#FF1F5B","#009ADE")
 
     SNP <- table1[[paste0(organisms[i], "_aapos")]]
-    gene1 <- GenomicRanges::GRanges("chr1", IRanges(SNP, width=1, names=paste0(table1[[paste0(organisms[i], "_from")]],
+    gene1 <- GenomicRanges::GRanges("chr1", IRanges::IRanges(SNP, width=1, names=paste0(table1[[paste0(organisms[i], "_from")]],
                                                                 table1[[paste0(organisms[i], "_aapos")]],
                                                                 table1[[paste0(organisms[i], "_to")]])))
     gene1$border <- sample(c("gray30"), length(SNP), replace=TRUE)
@@ -34,7 +34,7 @@ drawProt<-function(table, protein_id, organisms){
     gene1.rot$label.parameter.rot <- 45
     gene1.rot$SNPsideID<-"top"
 
-    features1 <- GenomicRanges::GRanges("chr1", IRanges(start=c(1, info$tbl$pfam_start, info$len),
+    features1 <- GenomicRanges::GRanges("chr1", IRanges::IRanges(start=c(1, info$tbl$pfam_start, info$len),
                                          width=c(0, info$tbl$pfam_end-info$tbl$pfam_start, 0),
                                          names=c("", info$dom, "")))
     features1$fill <- c("#FF1F5B", colors[1:length(info$tbl$pfam_start)], "#009ADE")
