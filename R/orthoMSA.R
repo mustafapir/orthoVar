@@ -198,7 +198,7 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
     fastafile<-Biostrings::AAStringSet(seqchar[k])
     Biostrings::writeXStringSet(fastafile, paste0("seqfile_", i, ".fasta"))
 
-    invisible(capture.output(alignment <- msa(paste0("seqfile_", i, ".fasta"), type = "protein")))
+    invisible(capture.output(alignment <- msa(paste0("seqfile_", i, ".fasta"), type = "protein", order = "input")))
     unlink(paste0("seqfile_", i, ".fasta"))
     unlink(paste0("seqfile_", i, ".aln"))
     unlink(paste0("seqfile_", i, ".dnd"))
