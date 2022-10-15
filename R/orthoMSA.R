@@ -179,7 +179,7 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
 
   seqlength <- length(species) + 1
 
-  cl <- snow::makeCluster(detectCores()-1)
+  cl <- snow::makeCluster(parallel::detectCores()-1)
   doSNOW::registerDoSNOW(cl)
   pb <- pbapply::timerProgressBar(min = 1, max = length(final_ort[[1]]), style = 2)
   progress <- function(n) setTxtProgressBar(pb, n)
