@@ -203,6 +203,8 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   close(pb)
   stopCluster(cl)
 
+  seqdf<-seqdf_mid
+
   speciesx <- c(species1, species)
   for (i in 1:length(speciesx)) {
     colnames(seqdf)[2 * i - 1] <- paste0(speciesx[i], "_ID")
