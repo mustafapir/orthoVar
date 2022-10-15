@@ -177,22 +177,32 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   cat(paste0("\r", "Aligning sequences                "))
   Sys.sleep(2)
 
+  seqlength <- length(species) + 1
+
+  cl <- snow::makeCluster(detectCores()-1)
+  doSNOW::registerDoSNOW(cl)
   pb <- pbapply::timerProgressBar(min = 1, max = length(final_ort[[1]]), style = 2)
-  seqdf <- data.frame(matrix(NA, ncol = 2 * (length(species) + 1)))
-  for (i in 1:length(final_ort[[1]])) {
-    seqlength <- length(species) + 1
+  progress <- function(n) setTxtProgressBar(pb, n)
+  opts <- list(progress = progress)
+
+  seqdf <- foreach::foreach(i = 1:length(final_ort[[1]]), .combine = "rbind", .packages = c('msa', 'BiocGenerics'), .options.snow = opts) %dopar% {
     seqchar <- as.character(final_ort[i, (2 * seqlength + 1):length(final_ort)])
 
     names(seqchar) <- final_ort[i, seqlength:1]
     k <- which(!is.na(seqchar))
     invisible(capture.output(alignment <- msa(seqchar[k], type = "protein")))
-    seqdf[i, 2 * k - 1] <- BiocGenerics::rownames(alignment)
+    lenx<- 2 * (length(species) + 1)
+    seqdf_mid<-data.frame(matrix(NA, ncol = lenx))
+    #seqdf_mid<-character(lenxL)
+    seqdf_mid[1, 2 * k - 1] <- BiocGenerics::rownames(alignment)
     for (j in k) {
-      seqdf[i, 2 * j] <- toString(unmasked(alignment)[which(k == j)])
+      seqdf_mid[1, 2 * j] <- toString(unmasked(alignment)[which(k == j)])
     }
-    # seqdf[i,2*k]<-toString(unmasked(alignment))
-    pbapply::setTimerProgressBar(pb, i)
+    return(seqdf_mid)
   }
+  close(pb)
+  stopCluster(cl)
+
   speciesx <- c(species1, species)
   for (i in 1:length(speciesx)) {
     colnames(seqdf)[2 * i - 1] <- paste0(speciesx[i], "_ID")

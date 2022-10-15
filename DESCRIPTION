@@ -25,7 +25,9 @@ Imports:
     R.utils,
     magrittr,
     purrr,
-    rvest
+    rvest,
+    foreach,
+    doSNOW
 Remotes:
     bioc::3.13/biomaRt,
     bioc::3.13/msa,
