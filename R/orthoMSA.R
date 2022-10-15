@@ -24,6 +24,8 @@
 orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles = NA, customOrt = NaN, annot = "ncbi", ...) {
   options(warn = -1)
 
+  `%dopar%` <- foreach::`%dopar%`
+
   # Set orthology data ----
   Sys.sleep(1)
   cat(paste0("\r", "Downloading protein fasta files"))
