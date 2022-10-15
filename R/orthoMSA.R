@@ -187,12 +187,18 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   progress <- function(n) setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
 
+
   seqdf <- foreach::foreach(i = 1:length(final_ort[[1]]), .combine = "rbind", .packages = c('msa', 'BiocGenerics'), .options.snow = opts) %dopar% {
     seqchar <- as.character(final_ort[i, (2 * seqlength + 1):length(final_ort)])
 
     names(seqchar) <- final_ort[i, seqlength:1]
     k <- which(!is.na(seqchar))
-    invisible(capture.output(alignment <- msa(seqchar[k], type = "protein")))
+
+    fileConn<-file(paste0("seqfile_", i, ".fasta"))
+    writeLines(seqchar[k], fileConn)
+    close(fileConn)
+
+    invisible(capture.output(alignment <- msa(paste0("seqfile_", i, ".fasta"), type = "protein")))
     lenx<- 2 * (length(species) + 1)
     seqdf_mid<-data.frame(matrix(NA, ncol = lenx))
     #seqdf_mid<-character(lenxL)
@@ -200,10 +206,11 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
     for (j in k) {
       seqdf_mid[1, 2 * j] <- toString(unmasked(alignment)[which(k == j)])
     }
+    unlink(paste0("seqfile_", i, ".fasta"))
     return(seqdf_mid)
   }
-  close(pb)
-  stopCluster(cl)
+  pbapply::closepb(pb)
+  parallel::stopCluster(cl)
 
   seqdf<-seqdf_mid
 
