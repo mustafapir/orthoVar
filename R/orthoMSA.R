@@ -200,6 +200,9 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
 
     invisible(capture.output(alignment <- msa(paste0("seqfile_", i, ".fasta"), type = "protein")))
     unlink(paste0("seqfile_", i, ".fasta"))
+    unlink(paste0("seqfile_", i, ".aln"))
+    unlink(paste0("seqfile_", i, ".dnd"))
+
     lenx<- 2 * (length(species) + 1)
     seqdf_mid<-data.frame(matrix(NA, ncol = lenx))
     #seqdf_mid<-character(lenxL)
@@ -213,12 +216,6 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   }
   pbapply::closepb(pb)
   parallel::stopCluster(cl)
-
-  for (i in 1:10) {
-    unlink(paste0("seqfile_", i, ".fasta"))
-    unlink(paste0("seqfile_", i, ".aln"))
-    unlink(paste0("seqfile_", i, ".dnd"))
-  }
 
   for (i in 1:length(final_ort[[1]])) {
     unlink(paste0("seqfile_", i, ".fasta"))
