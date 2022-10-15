@@ -188,31 +188,43 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   opts <- list(progress = progress)
 
 
-  seqdf <- foreach::foreach(i = 1:length(final_ort[[1]]), .combine = "rbind", .packages = c('msa', 'BiocGenerics'), .options.snow = opts) %dopar% {
+  seqdf <- foreach::foreach(i = 1:length(final_ort[[1]]), .packages = c('msa', 'BiocGenerics', 'seqinr'), .combine = "rbind", .options.snow = opts, .errorhandling = "pass") %dopar% {
     seqchar <- as.character(final_ort[i, (2 * seqlength + 1):length(final_ort)])
 
     names(seqchar) <- final_ort[i, seqlength:1]
     k <- which(!is.na(seqchar))
 
-    fileConn<-file(paste0("seqfile_", i, ".fasta"))
-    writeLines(seqchar[k], fileConn)
-    close(fileConn)
+    #seqinr::write.fasta(as.list(strsplit(seqchar[k], "\t")), names(seqchar), paste0("seqfile_", i, ".fasta"), open = "w", nbchar = 60, as.string = FALSE)
+    fastafile<-Biostrings::AAStringSet(seqchar[k])
+    Biostrings::writeXStringSet(fastafile, paste0("seqfile_", i, ".fasta"))
 
     invisible(capture.output(alignment <- msa(paste0("seqfile_", i, ".fasta"), type = "protein")))
+    unlink(paste0("seqfile_", i, ".fasta"))
     lenx<- 2 * (length(species) + 1)
     seqdf_mid<-data.frame(matrix(NA, ncol = lenx))
     #seqdf_mid<-character(lenxL)
-    seqdf_mid[1, 2 * k - 1] <- BiocGenerics::rownames(alignment)
+    #seqdf_mid[1, 2 * k - 1] <- BiocGenerics::rownames(alignment)
+    seqdf_mid[1, 2 * k - 1] <- names(seqchar[k])
     for (j in k) {
       seqdf_mid[1, 2 * j] <- toString(unmasked(alignment)[which(k == j)])
     }
-    unlink(paste0("seqfile_", i, ".fasta"))
+
     return(seqdf_mid)
   }
   pbapply::closepb(pb)
   parallel::stopCluster(cl)
 
-  seqdf<-seqdf_mid
+  for (i in 1:10) {
+    unlink(paste0("seqfile_", i, ".fasta"))
+    unlink(paste0("seqfile_", i, ".aln"))
+    unlink(paste0("seqfile_", i, ".dnd"))
+  }
+
+  for (i in 1:length(final_ort[[1]])) {
+    unlink(paste0("seqfile_", i, ".fasta"))
+    unlink(paste0("seqfile_", i, ".aln"))
+    unlink(paste0("seqfile_", i, ".dnd"))
+  }
 
   speciesx <- c(species1, species)
   for (i in 1:length(speciesx)) {
