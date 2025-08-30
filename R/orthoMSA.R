@@ -97,7 +97,7 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
 
   fpath <- file.path(getwd(), "sequence_files")
   seqFiles1 <- list.files(path = fpath, full.names = TRUE)
-  purrr::map_if(seqFiles1, function(x) tools::file_ext(x) == "gz", function(x) Map(R.utils::gunzip, x)) # unzip all files in the directory
+  # purrr::map_if(seqFiles1, function(x) tools::file_ext(x) == "gz", function(x) Map(R.utils::gunzip, x)) # unzip all files in the directory
   sfs <- list.files(path = "sequence_files", full.names = TRUE)
 
   Sys.sleep(1)
@@ -106,12 +106,22 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   f <- function(aa, bb) {
     eval(substitute(a <- b, list(a = as.name(aa), b = bb)))
   }
-  seqList <- Map(f, paste0("file_", 1:length(sfs)), Map(function(a, x, y) {
-    seqinr::read.fasta(a, seqtype = x, as.string = y)
-  },
-  a = sfs, x = "AA", y = TRUE
-  ))
+  # seqList <- Map(f, paste0("file_", 1:length(sfs)), Map(function(a, x, y) {
+  #   seqinr::read.fasta(a, seqtype = x, as.string = y)
+  # },
+  # a = sfs, x = "AA", y = TRUE
+  # ))
+  read_fasta_any <- function(path, seqtype = "AA", as.string = TRUE) {
+    con <- if (grepl("\\.gz$", path, ignore.case = TRUE)) gzfile(path, "rt") else file(path, "rt")
+    on.exit(close(con), add = TRUE)
+    seqinr::read.fasta(file = con, seqtype = seqtype, as.string = as.string)
+  }
 
+  seqList <- Map(
+    f,
+    paste0("file_", seq_along(sfs)),
+    lapply(sfs, read_fasta_any)  # <- produces the 2nd argument for f
+  )
   Sys.sleep(1)
   cat(paste0("\r", "Reading fasta files...            "))
 
