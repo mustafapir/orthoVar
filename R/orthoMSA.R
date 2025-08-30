@@ -31,7 +31,9 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   cat(paste0("\r", "Downloading protein fasta files"))
   if (length(customOrt) > 0 && all(customOrt != "ensembl")) {
     orthology <- customOrt
-    orthology <- ortho_convert(species1, species, orthology = customOrt)
+    if (annot == "ncbi"){
+      orthology <- ortho_convert(species1, species, orthology = customOrt)
+    }
   } else if (customOrt == "ensembl") {
     orthology <- ort(species1, species)
   } else {
