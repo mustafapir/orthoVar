@@ -97,7 +97,9 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
 
   fpath <- file.path(getwd(), "sequence_files")
   seqFiles1 <- list.files(path = fpath, full.names = TRUE)
-  purrr::map_if(seqFiles1, function(x) tools::file_ext(x) == "gz", function(x) Map(R.utils::gunzip, x)) # unzip all files in the directory
+  # Filter for valid file paths before processing
+  seqFiles1 <- seqFiles1[file.exists(seqFiles1) & !is.na(seqFiles1)]
+  purrr::map_if(seqFiles1, function(x) tools::file_ext(x) == "gz", R.utils::gunzip) # unzip all files in the directory
   sfs <- list.files(path = "sequence_files", full.names = TRUE)
 
   Sys.sleep(1)
