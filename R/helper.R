@@ -92,10 +92,43 @@ getlinks<-function(species1, species, annot){
   } else {
     all_links<-c()
     for (i in 1:length(allsp)){
-      page<-rvest::read_html(paste0("https://ftp.ensembl.org/pub/current_fasta/", spnames2[i], "/pep/"))
-      link<-page %>% rvest::html_nodes(xpath = '/html/body/pre/a') %>% rvest::html_attr('href')
-      link<-link[grepl("all",link)]
-      link<-paste0("https://ftp.ensembl.org/pub/current_fasta/", spnames2[i], "/pep/", link)
+      # Try multiple possible Ensembl FTP endpoints
+      base_urls <- c(
+        "http://ftp.ensembl.org/pub/current_fasta/",
+        "https://ftp.ebi.ac.uk/pub/databases/ensembl/current_fasta/",
+        "http://ftp.ebi.ac.uk/pub/databases/ensembl/current_fasta/"
+      )
+      
+      link <- NULL
+      for (base_url in base_urls) {
+        tryCatch({
+          page_url <- paste0(base_url, spnames2[i], "/pep/")
+          cat(paste0("\r", "  Trying URL: ", page_url, "..."))
+          page <- rvest::read_html(page_url)
+          # Try different selectors for directory listings
+          link <- page %>% rvest::html_nodes("a") %>% rvest::html_attr('href')
+          if (length(link) == 0) {
+            link <- page %>% rvest::html_nodes(xpath = '/html/body/pre/a') %>% rvest::html_attr('href')
+          }
+          link <- link[grepl("\\.pep\\.all\\.fa\\.gz$", link)]
+          if (length(link) > 0) {
+            link <- paste0(base_url, spnames2[i], "/pep/", link[1])
+            cat(paste0("\r", "  Found file: ", basename(link), " "))
+            break
+          }
+        }, error = function(e) {
+          # Continue to next URL if this one fails
+        })
+      }
+      
+      if (is.null(link) || length(link) == 0) {
+        warning(paste("Could not find protein fasta file for", allsp[i], 
+                      "at any of the Ensembl FTP sites. Tried URLs:",
+                      paste(sapply(base_urls, function(x) paste0(x, spnames2[i], "/pep/")), collapse = ", ")))
+        stop(paste("Failed to download sequence file for", allsp[i], 
+                   ". Please check if the species name is correct or try providing custom sequence files."))
+      }
+      
       all_links<-c(all_links, link)
     }
   }
