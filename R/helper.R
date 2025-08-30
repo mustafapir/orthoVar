@@ -110,6 +110,8 @@ getlinks<-function(species1, species, annot){
           if (length(link) == 0) {
             link <- page %>% rvest::html_nodes(xpath = '/html/body/pre/a') %>% rvest::html_attr('href')
           }
+          # Filter for peptide files, remove any NA values
+          link <- link[!is.na(link)]
           link <- link[grepl("\\.pep\\.all\\.fa\\.gz$", link)]
           if (length(link) > 0) {
             link <- paste0(base_url, spnames2[i], "/pep/", link[1])
