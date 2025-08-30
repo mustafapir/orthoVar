@@ -140,7 +140,7 @@ getlinks<-function(species1, species, annot){
 
 }
 
-ortho_convert<-function(species1, species, ...){
+ortho_convert<-function(species1, species, orthology, ...){
 
   # filter data based on user input
   orr<-orthology %>%
