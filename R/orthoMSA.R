@@ -29,11 +29,9 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   # Set orthology data ----
   Sys.sleep(1)
   cat(paste0("\r", "Downloading protein fasta files"))
-  if (length(customOrt) > 0 && all(customOrt != "ensembl")) {
-    orthology <- list(customOrt)
-    if (annot == "ncbi"){
-      orthology <- ortho_convert(species1, species, orthology = customOrt)
-    }
+  if (length(customOrt) > 0 & customOrt != "ensembl") {
+    orthology <- customOrt
+    orthology <- ortho_convert(species1, species)
   } else if (customOrt == "ensembl") {
     orthology <- ort(species1, species)
   } else {
@@ -111,17 +109,7 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
   },
   a = sfs, x = "AA", y = TRUE
   ))
-  #read_fasta_any <- function(path, seqtype = "AA", as.string = TRUE) {
-  #  con <- if (grepl("\\.gz$", path, ignore.case = TRUE)) gzfile(path, "rt") else file(path, "rt")
-  #  on.exit(close(con), add = TRUE)
-  #  seqinr::read.fasta(file = con, seqtype = seqtype, as.string = as.string)
-  #}
 
-  #seqList <- Map(
-  #  f,
-  #  paste0("file_", seq_along(sfs)),
-  #  lapply(sfs, read_fasta_any)  # <- produces the 2nd argument for f
-  #)
   Sys.sleep(1)
   cat(paste0("\r", "Reading fasta files...            "))
 
@@ -195,8 +183,7 @@ orthoMSA <- function(species1 = "Homo sapiens", species, seqFile1 = NA, seqFiles
 
   cl <- snow::makeCluster(parallel::detectCores()-1)
   doSNOW::registerDoSNOW(cl)
-  cat(paste0("\r", nrow(final_ort[[1]])))
-  pb <- pbapply::timerProgressBar(min = 1, max = nrow(final_ort[[1]]), style = 2)
+  pb <- pbapply::timerProgressBar(min = 1, max = length(final_ort[[1]]), style = 2)
   progress <- function(n) setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
 
